@@ -129,6 +129,12 @@
   <data name="LBGAME_QCK" xml:space="preserve">
     <value>lbQck</value>
   </data>
+  <data name="LBPAUSE" xml:space="preserve">
+    <value>pauseLabel</value>
+  </data>
+  <data name="LBPAUSE_TXT" xml:space="preserve">
+    <value>GAME PAUSED</value>
+  </data>
   <data name="MSG_ERRORSAVE_TITLE" xml:space="preserve">
     <value>Oh no!</value>
   </data>

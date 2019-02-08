@@ -45,7 +45,8 @@ namespace Keynvaders
             currentLevel,//The current game level
             displayScore,//The score being displayed (on high scores)
             displayState;//The displaying state of the score being displayed
-        private bool inGame;//Activated when playing
+        private bool inGame, inPause;//Activated when playing
+        private Label pauseLabel;//Shown when game is paused
 
         /// <summary>
         /// Data handler pointer
@@ -61,7 +62,23 @@ namespace Keynvaders
             outOfGameControls = Controls.Count;
             dataHand = new KnVDataHandler();
             inGame = false;
+            inPause = false;
             checkScoreDisplay();
+
+            //Pause Label
+            this.pauseLabel = new Label();
+            this.pauseLabel.AutoSize = true;
+            this.pauseLabel.Name = Properties.Resources.LBPAUSE;
+            this.pauseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif",
+                15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+
+            this.pauseLabel.BackColor = Color.Snow;
+            this.pauseLabel.ForeColor = Color.Red;
+            this.pauseLabel.Top = (GAME_HEIGHT / 2 - this.pauseLabel.Height) ;
+            this.pauseLabel.Left = (GAME_WIDTH / 2 - this.pauseLabel.Width) ;
+            this.pauseLabel.Text = Properties.Resources.LBPAUSE_TXT;
+            pauseLabel.Hide();
+            this.Controls.Add(pauseLabel);
         }
 
         /// <summary>
@@ -144,20 +161,21 @@ namespace Keynvaders
         {
             //if (rand.Next(0, 101) < 99)
             //{
-                Label lb = new Label();//Create a new label
-                lb.AutoSize = true;//Set it to autosize
-                lb.Name = currentLevel > 1 && rand.Next(0, 10) < 2 ? Properties.Resources.LBGAME_QCK : Properties.Resources.LBGAME;//Set the name (and mode therefore, 2 in 10 chance of a quick label)
-                lb.ForeColor = lb.Name == Properties.Resources.LBGAME ? Color.Black : Color.Red;//Black color for normal labels, red for quick labels
-                lb.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));//Set the font
-                lb.Top = 0;//Starting point (height)
-                lb.Left = rand.Next(0, this.ClientSize.Width - lb.Width);//Starting point (width) on a random basg 
-                lb.Text = validChars[rand.Next(0, validChars.Length)].ToString();//Set a random char from the string of valid characters
-                lb.Text = currentLevel > 7 && rand.Next(0, 10) < 1 ? lb.Text.ToUpper() : lb.Text;//1 in 10 chance if level is higher than 7 of an uppercase letter
-                if (inGame)//Check if game is enabled (don't let it add controls after game has ended)
-                {
-                    Controls.Add(lb);//Add the label
-                }
-                //FIXME HateYou attack. It works, but i'm not sure about this idea
+            Label lb = new Label();                                                                                                 //Create a new label
+            lb.AutoSize = true;                                                                                                     //Set it to autosize
+            lb.Name = currentLevel > 1 && rand.Next(0, 10) < 2 ? Properties.Resources.LBGAME_QCK : Properties.Resources.LBGAME;     //Set the name (and mode therefore, 2 in 10 chance of a quick label)
+            lb.ForeColor = lb.Name == Properties.Resources.LBGAME ? Color.Black : Color.Red;                                        //Black color for normal labels, red for quick labels
+            lb.Font = new System.Drawing.Font("Microsoft Sans Serif",
+                15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));                          //Set the font
+            lb.Top = 0;                                                                                                             //Starting point (height)
+            lb.Left = rand.Next(0, this.ClientSize.Width - lb.Width);                                                               //Starting point (width) on a random base
+            lb.Text = validChars[rand.Next(0, validChars.Length)].ToString();                                                       //Set a random char from the string of valid characters
+            lb.Text = currentLevel > 7 && rand.Next(0, 10) < 1 ? lb.Text.ToUpper() : lb.Text;                                       //1 in 10 chance if level is higher than 7 of an uppercase letter
+            if (inGame & !inPause)                                                                                                             //Check if game is enabled (don't let it add controls after game has ended)
+            {
+                Controls.Add(lb);//Add the label
+            }
+            //FIXME HateYou attack. It works, but i'm not sure about this idea
             /*}
             else
             {
@@ -210,12 +228,14 @@ namespace Keynvaders
             this.Focus();//Set the focus on the form
             updateTitle(true);//Update the title with score and level
             inGame = true;//Go ingame
+            inPause = false;//Pause should be false
             tmrDisplayScores.Stop();//Stop displaying the scores
             //Start the game timers
             tmrMovement.Start();
             tmrCreator.Start();
             //Set the form to game size
             this.Size = new Size(GAME_WIDTH, GAME_HEIGHT);
+            
         }
 
         /// <summary>
@@ -225,7 +245,7 @@ namespace Keynvaders
         /// <param name="e">The key press arguments</param>
         private void keynvaders_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (inGame)
+            if (inGame && !inPause)
             {
                 for (int i = Controls.Count - 1; i >= 0; i--)
                 {
@@ -242,6 +262,44 @@ namespace Keynvaders
                     }
                 }
             }
+        }
+
+        private void togglePause()
+        {
+            inPause = !inPause;
+            if (pauseLabel.Visible)
+            {
+                pauseLabel.Hide();
+            }
+            else
+            {
+                pauseLabel.Show();
+            }
+            if (tmrCreator.Enabled)
+            {
+                tmrCreator.Stop();
+            }
+            else
+            {
+                tmrCreator.Start();
+            }
+            if (tmrMovement.Enabled)
+            {
+                tmrMovement.Stop();
+            }
+            else
+            {
+                tmrMovement.Start();
+            }
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                togglePause();
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         /// <summary>
@@ -271,6 +329,7 @@ namespace Keynvaders
             tmrMovement.Stop();
             tmrCreator.Stop();
             inGame = false;
+            inPause = false;
 
             //Show losing prompt
             MessageBox.Show(String.Format(Properties.Resources.MSG_LOSE_TXT, currentScore), Properties.Resources.MSG_LOSE_TITLE, MessageBoxButtons.OK);
@@ -324,7 +383,7 @@ namespace Keynvaders
         /// <param name="inGame">True for ingame variables, false for plain title</param>
         private void updateTitle(bool inGame)
         {
-            if (inGame)
+            if (inGame && !inPause)
             {
                 this.Text = Properties.Resources.TITLE_MAIN + Properties.Resources.TITLE_SCORE + currentScore + Properties.Resources.TITLE_LEVEL + currentLevel;
             }
@@ -371,7 +430,7 @@ namespace Keynvaders
 
         private void KeynvadersMainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            
+
         }
     }
 }

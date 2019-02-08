@@ -97,6 +97,24 @@ namespace Keynvaders.Properties {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a pauseLabel.
+        /// </summary>
+        internal static string LBPAUSE {
+            get {
+                return ResourceManager.GetString("LBPAUSE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a GAME PAUSED.
+        /// </summary>
+        internal static string LBPAUSE_TXT {
+            get {
+                return ResourceManager.GetString("LBPAUSE_TXT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a Oh no!.
         /// </summary>
         internal static string MSG_ERRORSAVE_TITLE {
